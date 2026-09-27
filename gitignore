@@ -1,0 +1,36 @@
+# Flutter / Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+build/
+coverage/
+
+# IDEs
+.idea/
+*.iml
+.vscode/
+*.swp
+.DS_Store
+
+# Android
+android/.gradle/
+android/app/build/
+android/build/
+android/local.properties
+android/captures/
+android/app/debug/
+android/app/profile/
+android/app/release/
+**/GeneratedPluginRegistrant.*
+android/gradle/wrapper/gradle-wrapper.jar
+
+# Secrets / signing (never commit)
+key.properties
+android/key.properties
+*.jks
+*.keystore
+*.p12
+*.pem
+.env
