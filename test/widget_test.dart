@@ -43,4 +43,15 @@ void main() {
     expect(fmt(180), '3:00');
     expect(fmt(3725), '1:02:05');
   });
+
+  test('catalogId survives save/load and is optional', () {
+    final e = Exercise(name: 'Supino inclinado', catalogId: 'Incline_Dumbbell_Press');
+    final back = Exercise.fromJson(e.toJson());
+    expect(back.catalogId, 'Incline_Dumbbell_Press');
+    expect(back.copy().catalogId, 'Incline_Dumbbell_Press');
+    // Presets saved before this feature have no catalogId.
+    final old = Exercise.fromJson({'name': 'Squats', 'sets': 3, 'workSec': 60, 'restSec': 60});
+    expect(old.catalogId, isNull);
+    expect(old.toJson().containsKey('catalogId'), isFalse);
+  });
 }

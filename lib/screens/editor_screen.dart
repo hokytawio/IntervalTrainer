@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
+import '../catalog.dart';
 import '../models.dart';
 import '../storage.dart';
 import '../xp/xp.dart';
+import 'exercise_picker.dart';
 
 /// Create or edit a saved workout (preset).
 class EditorScreen extends StatefulWidget {
@@ -29,6 +31,9 @@ class _EditorScreenState extends State<EditorScreen> {
           changeSec: 180,
         );
     _name = TextEditingController(text: _p.name);
+    ExerciseCatalog.load().then((_) {
+      if (mounted) setState(() {});
+    });
     for (final e in _p.exercises) {
       _exNames.add(TextEditingController(text: e.name));
     }
@@ -61,6 +66,25 @@ class _EditorScreenState extends State<EditorScreen> {
         _exNames.removeLast().dispose();
       }
     });
+  }
+
+  Future<void> _pickExercise(int i) async {
+    final chosen = await Navigator.push<CatalogExercise>(
+      context,
+      MaterialPageRoute(builder: (_) => const ExercisePickerScreen()),
+    );
+    if (chosen == null || !mounted) return;
+    setState(() {
+      _p.exercises[i].catalogId = chosen.id;
+      _exNames[i].text = chosen.name(app.settings.voiceLang);
+    });
+  }
+
+  void _howTo(CatalogExercise ex) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => ExerciseHowToScreen(exercise: ex)),
+    );
   }
 
   Future<void> _save() async {
@@ -118,6 +142,10 @@ class _EditorScreenState extends State<EditorScreen> {
                         exercise: _p.exercises[i],
                         nameController: _exNames[i],
                         onChanged: () => setState(() {}),
+                        onPick: () => _pickExercise(i),
+                        onHowTo: _howTo,
+                        onUnlink: () =>
+                            setState(() => _p.exercises[i].catalogId = null),
                       ),
                       const SizedBox(height: 8),
                     ],
@@ -193,12 +221,18 @@ class _ExerciseBox extends StatelessWidget {
     required this.exercise,
     required this.nameController,
     required this.onChanged,
+    required this.onPick,
+    required this.onHowTo,
+    required this.onUnlink,
   });
 
   final int index;
   final Exercise exercise;
   final TextEditingController nameController;
   final VoidCallback onChanged;
+  final VoidCallback onPick;
+  final void Function(CatalogExercise ex) onHowTo;
+  final VoidCallback onUnlink;
 
   @override
   Widget build(BuildContext context) {
@@ -209,6 +243,13 @@ class _ExerciseBox extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           XpTextField(controller: nameController, hint: 'e.g. Squats'),
+          const SizedBox(height: 8),
+          _CatalogRow(
+            linked: ExerciseCatalog.loaded?.byId(e.catalogId),
+            onPick: onPick,
+            onHowTo: onHowTo,
+            onUnlink: onUnlink,
+          ),
           const SizedBox(height: 10),
           _Line(
             label: 'Sets (series)',
@@ -252,6 +293,47 @@ class _ExerciseBox extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// "Choose from list" + "How to do it" for one exercise.
+class _CatalogRow extends StatelessWidget {
+  const _CatalogRow({
+    required this.linked,
+    required this.onPick,
+    required this.onHowTo,
+    required this.onUnlink,
+  });
+
+  final CatalogExercise? linked;
+  final VoidCallback onPick;
+  final void Function(CatalogExercise ex) onHowTo;
+  final VoidCallback onUnlink;
+
+  @override
+  Widget build(BuildContext context) {
+    final ex = linked;
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        XpButton(
+          label: ex == null ? 'Choose from list' : 'Change',
+          icon: Icons.list_alt,
+          onPressed: onPick,
+        ),
+        if (ex != null) ...[
+          XpButton(
+            label: 'How to do it',
+            icon: Icons.play_circle_outline,
+            kind: XpButtonKind.green,
+            onPressed: () => onHowTo(ex),
+          ),
+          XpButton(label: '', icon: Icons.link_off, onPressed: onUnlink),
+        ],
+      ],
     );
   }
 }

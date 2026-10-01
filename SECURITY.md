@@ -6,6 +6,10 @@
 - No personal data is collected beyond workout names you type yourself.
 - Voice cues use the phone's own text-to-speech engine. Some engines may offer online voices; the app itself sends nothing.
 
+## Third-party content
+- The exercise catalog and photos (`assets/exercises/`) come from free-exercise-db and are public domain (Unlicense). They are bundled in the app, so the library works offline and loads nothing from the internet.
+- Exercise instructions are general guidance, not medical advice; the app says so on the "How to do it" screen.
+
 ## Permissions
 | Permission | Why |
 |---|---|

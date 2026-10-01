@@ -4,11 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../background.dart';
+import '../catalog.dart';
 import '../engine.dart';
 import '../models.dart';
 import '../storage.dart';
 import '../voice.dart';
 import '../xp/xp.dart';
+import 'exercise_picker.dart';
 
 class WorkoutScreen extends StatefulWidget {
   const WorkoutScreen({super.key, required this.preset});
@@ -43,6 +45,9 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
     _engine.addListener(_syncNotification);
     WorkoutNotification.onAction = _onNotificationAction;
     if (s.keepScreenOn) WakelockPlus.enable();
+    ExerciseCatalog.load().then((_) {
+      if (mounted) setState(() {});
+    });
     _begin(s);
   }
 
@@ -238,6 +243,11 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
     final ex = widget.preset.exercises;
     final exName = p.exercise < ex.length ? ex[p.exercise].name : '';
     final next = _engine.nextPhase;
+    // During prep / change, p.exercise is the exercise that comes next.
+    final catalogEx = p.exercise < ex.length
+        ? ExerciseCatalog.loaded?.byId(ex[p.exercise].catalogId)
+        : null;
+    final upcoming = p.type == PhaseType.prep || p.type == PhaseType.change;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -277,6 +287,29 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
             textAlign: TextAlign.center,
             style: const TextStyle(color: Colors.black54, fontSize: 14),
           ),
+        if (catalogEx != null) ...[
+          const SizedBox(height: 6),
+          Center(
+            child: XpButton(
+              label: 'How to do it',
+              icon: Icons.play_circle_outline,
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (_) => ExerciseHowToScreen(exercise: catalogEx)),
+              ),
+            ),
+          ),
+        ],
+        if (catalogEx != null && upcoming) ...[
+          const SizedBox(height: 8),
+          SizedBox(
+            height: 130,
+            child: XpSunken(
+              child: ExerciseAnimation(frames: catalogEx.frames),
+            ),
+          ),
+        ],
         const SizedBox(height: 10),
         // Big time display
         Expanded(

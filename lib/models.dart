@@ -20,24 +20,39 @@ class Exercise {
   int workSec;
   int restSec;
 
+  /// Id in the built-in catalog (enables "How to do it"), or null for a
+  /// free-text exercise.
+  String? catalogId;
+
   Exercise({
     required this.name,
     this.sets = 4,
     this.workSec = 60,
     this.restSec = 60,
+    this.catalogId,
   });
 
-  Exercise copy() =>
-      Exercise(name: name, sets: sets, workSec: workSec, restSec: restSec);
+  Exercise copy() => Exercise(
+      name: name,
+      sets: sets,
+      workSec: workSec,
+      restSec: restSec,
+      catalogId: catalogId);
 
-  Map<String, dynamic> toJson() =>
-      {'name': name, 'sets': sets, 'workSec': workSec, 'restSec': restSec};
+  Map<String, dynamic> toJson() => {
+        'name': name,
+        'sets': sets,
+        'workSec': workSec,
+        'restSec': restSec,
+        if (catalogId != null) 'catalogId': catalogId,
+      };
 
   factory Exercise.fromJson(Map<String, dynamic> j) => Exercise(
         name: j['name'] as String? ?? 'Exercise',
         sets: j['sets'] as int? ?? 4,
         workSec: j['workSec'] as int? ?? 60,
         restSec: j['restSec'] as int? ?? 60,
+        catalogId: j['catalogId'] as String?,
       );
 }
 
